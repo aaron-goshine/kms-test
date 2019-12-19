@@ -1,0 +1,45 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: PaymentGateway Chat Test
+Parameters:
+  ProjectName:
+    Type: String
+    Default: paymentGatewayTest
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - qa
+      - uat
+      - prod
+    Description: Application development environments
+Mappings:
+  EnvMappings:
+    dev:
+      region: eu-west-1
+      KMSRoles: 
+        - "arn:aws:iam::108246359263:role/service-role/codebuild-kms-test-service-role"
+    uat:
+      region: eu-west-1
+Resources:  
+  KmsKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Enabled: true
+      KeyPolicy:
+        Version: 2012-10-17
+        Id: !Join [ '-', [ 'payment-Chat-Test-1' , !Ref Environment ] ]
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal: 
+              AWS: "arn:aws:iam::108246359263:role/service-role/codebuild-kms-test-service-role"       
+            Action: 'kms:*'
+            Resource: '*'
+  KeyAlias:
+      Type: 'AWS::KMS::Alias'
+      Properties:
+        AliasName: !Sub 'alias/${AWS::StackName}-2'
+        TargetKeyId: !Ref KmsKey
+
